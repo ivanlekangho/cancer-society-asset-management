@@ -632,12 +632,9 @@ def show_dialog():
 # TOP BAR
 # ---------------------------------------------------------------------------
 def top_bar(hubs, task_counts_by_hub):
-    logo_col, title_col = st.columns([1, 5])
-    with logo_col:
-        if os.path.exists("logo.png"):
-            st.image("logo.png", width=160)
-    with title_col:
-        st.title("Hub Asset Manager")
+    if os.path.exists("logo.png"):
+        st.image("logo.png", width=400)
+    st.title("Greater Wellington Hub Asset Manager")
 
     col1, col2 = st.columns([2, 5])
     with col1:
