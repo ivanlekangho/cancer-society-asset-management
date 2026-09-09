@@ -663,6 +663,7 @@ def top_bar(hubs, task_counts_by_hub):
 # ASSETS TAB — grouped by type, compact flashcards
 # ---------------------------------------------------------------------------
 def render_assets_tab(hub_id, hubs, all_assets, all_tasks):
+    hubs_by_id = {h["id"]: h for h in hubs}
     top_c1, top_c2 = st.columns([5, 2])
     with top_c1:
         show_archived = st.checkbox("Show archived assets", value=False)
@@ -689,6 +690,8 @@ def render_assets_tab(hub_id, hubs, all_assets, all_tasks):
             with cols[i % 3]:
                 with st.container(border=True):
                     st.markdown(f"**{a['name']}**")
+                    if hub_id is None:
+                        st.caption(hubs_by_id.get(a["hub_id"], {}).get("initials", "—"))
                     if a.get("identifier"):
                         st.caption(a["identifier"])
                     st.markdown(asset_summary_line(tasks_by_asset.get(a["id"], [])))
