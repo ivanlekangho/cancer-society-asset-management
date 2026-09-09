@@ -680,23 +680,42 @@ def render_assets_tab(hub_id, hubs, all_assets, all_tasks):
     for t in all_tasks:
         tasks_by_asset.setdefault(t["asset_id"], []).append(t)
 
-    for type_key, type_label in TYPE_LABELS.items():
-        group = [a for a in visible_assets if a["type"] == type_key]
-        if not group:
-            continue
-        st.subheader(type_label)
-        cols = st.columns(3)
-        for i, a in enumerate(group):
-            with cols[i % 3]:
-                with st.container(border=True):
-                    st.markdown(f"**{a['name']}**")
-                    if hub_id is None:
-                        st.caption(hubs_by_id.get(a["hub_id"], {}).get("initials", "—"))
-                    if a.get("identifier"):
-                        st.caption(a["identifier"])
-                    st.markdown(asset_summary_line(tasks_by_asset.get(a["id"], [])))
-                    if st.button("View", key=f"view_{a['id']}", use_container_width=True):
-                        open_dialog({"type": "asset", "id": a["id"], "mode": "view"}); st.rerun()
+    def render_card(a, show_type):
+        with st.container(border=True):
+            st.markdown(f"**{a['name']}**")
+            if show_type:
+                st.caption(TYPE_LABELS.get(a["type"], "Other"))
+            if a.get("identifier"):
+                st.caption(a["identifier"])
+            st.markdown(asset_summary_line(tasks_by_asset.get(a["id"], [])))
+            if st.button("View", key=f"view_{a['id']}", use_container_width=True):
+                open_dialog({"type": "asset", "id": a["id"], "mode": "view"}); st.rerun()
+
+    if hub_id is None:
+        # All-hubs view: hub is the ambiguity here, so group by hub (full names,
+        # no abbreviation) instead of by type. Type moves onto each card instead,
+        # since it's no longer implied by the section header.
+        for h in hubs:
+            group = [a for a in visible_assets if a["hub_id"] == h["id"]]
+            if not group:
+                continue
+            st.subheader(h["name"])
+            cols = st.columns(3)
+            for i, a in enumerate(group):
+                with cols[i % 3]:
+                    render_card(a, show_type=True)
+    else:
+        # Single-hub view: hub is already fixed and shown in the top bar, so
+        # group by type instead — type is the useful axis here.
+        for type_key, type_label in TYPE_LABELS.items():
+            group = [a for a in visible_assets if a["type"] == type_key]
+            if not group:
+                continue
+            st.subheader(type_label)
+            cols = st.columns(3)
+            for i, a in enumerate(group):
+                with cols[i % 3]:
+                    render_card(a, show_type=False)
 
 
 # ---------------------------------------------------------------------------
